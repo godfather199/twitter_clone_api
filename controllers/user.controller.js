@@ -86,8 +86,21 @@ export const login_User = async (req, res, next) => {
 }
 
 
-
-export const logout_User = async () => {}
+  
+export const logout_User = async (req, res, next) => {
+  try {
+    res
+      .status(201)
+      .cookie("access_token_ab", "", {
+        httpOnly: true,
+      })
+      .json({
+        msg: "Logout successful",
+      });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 
@@ -145,6 +158,42 @@ export const toggle_Follow_Users = async (req, res, next) => {
       logged_In_User
     })
 
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+
+export const toggle_Bookmark_Post = async (req, res, next) => {
+  try {
+    const {id} = req.user
+    const {postId} = req.params
+
+    const user = await User.findById(id)
+
+    let message
+
+    if(user.bookmarks.includes(postId)) {
+      user.bookmarks = user.bookmarks.filter(
+        (item) => item.toString() !== postId.toString()
+      );
+
+      message = 'Post removed from Bookmarks'
+    }
+    else {
+      user.bookmarks.push(postId)
+
+      message = 'Post Bookmarked'
+    }
+
+    await user.save()
+
+    res.status(201).json({
+      msg: message,
+      user
+    })
+    
   } catch (error) {
     next(error)
   }

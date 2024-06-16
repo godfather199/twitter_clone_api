@@ -1,5 +1,6 @@
 import userRouter from './routes/user.route.js'
 import postRouter from './routes/post.route.js'
+import hashtagRouter from './routes/hashtag.route.js'
 import express from 'express'
 import {config} from 'dotenv'
 import morgan from 'morgan'
@@ -28,6 +29,7 @@ app.use(cors({
 // Route Middleware
 app.use('/api/user', userRouter)
 app.use('/api/post', postRouter)
+app.use('/api/hashtag', hashtagRouter)
 
 
 // Error Middleware
