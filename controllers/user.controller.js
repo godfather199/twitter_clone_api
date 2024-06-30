@@ -1,6 +1,8 @@
 import errorHandler from '../middlewares/errorHandler.js';
 import User from '../models/user.model.js'
 import jwt from 'jsonwebtoken'
+import {v2 as cloudinary} from 'cloudinary'
+
 
 
 export const register_User = async (req, res, next) => {
@@ -91,7 +93,7 @@ export const logout_User = async (req, res, next) => {
   try {
     res
       .status(201)
-      .cookie("access_token_ab", "", {
+      .cookie("access_token_twitter", "", {
         httpOnly: true,
       })
       .json({
@@ -101,6 +103,18 @@ export const logout_User = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+export const authenticate_User = async (req, res, next) => {
+  try {
+    res.status(201).json({
+      success: true
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 
 
 
@@ -271,4 +285,84 @@ export const search_Users = async (req, res,  next) => {
 
 
 export const edit_User_Profile = async () => {}
+
+
+
+export const upload_User_Media = async (req, res, next) => {
+  try {
+    const {id} = req.user
+    const {profile_Pic, cover_Pic} = req.body
+
+    const logged_In_User = await User.findById(id)
+
+    const cloudinary_Utility_Function = async (pic_Data, folder_String) => {
+      const result = await cloudinary.uploader.upload(
+        pic_Data,
+        {
+          folder: folder_String,
+        }
+      );
+
+      return result
+    };
+
+    let message
+
+    // Display picture
+    if(profile_Pic) {
+      if (logged_In_User.displayPicture.url) {
+        const delete_Pic = await cloudinary.uploader.destroy(
+          logged_In_User.displayPicture.public_Id
+        );
+      }
+
+      const { public_id, secure_url} = await cloudinary_Utility_Function(
+        profile_Pic,
+        "Twitter/Twitter_User_Display_Picture"
+      );
+
+      logged_In_User.displayPicture = {
+        public_Id: public_id,
+        url: secure_url,
+      };
+
+      message = 'Profile Picture uploaded'
+    }
+
+
+    // Cover Photo
+    if(cover_Pic) {
+      if (logged_In_User.coverPicture.url) {
+        const delete_Pic = await cloudinary.uploader.destroy(
+          logged_In_User.coverPicture.public_Id
+        );
+      }
+
+      const { public_id, secure_url} = await cloudinary_Utility_Function(
+        cover_Pic,
+        "Twitter/Twitter_User_Cover_Picture"
+      );
+
+      logged_In_User.coverPicture = {
+        public_Id: public_id,
+        url: secure_url,
+      };
+      
+      message = 'Cover Picture uploaded'
+    }
+
+    
+    await logged_In_User.save();
+
+
+    res.status(201).json({
+      msg: "Upload successfull",
+      logged_In_User
+    })
+
+
+  } catch (error) {
+    next(error)
+  }
+}
 

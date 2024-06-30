@@ -264,9 +264,19 @@ export const comment_On_Post = async (req, res, next) => {
 
     await post.save()
 
+    // const populatedPost = await post.populate('comments.user').execPopulate()
+    await post.populate({
+      path: 'comments',
+      populate: { 
+        path: 'user'
+      }
+    })
+
+
     res.status(201).json({
       msg: 'Comment posted',
       post
+      // post: populatedPost
     })
   } catch (error) {
     next(error)
