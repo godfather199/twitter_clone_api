@@ -77,6 +77,8 @@ export const login_User = async (req, res, next) => {
       .cookie("access_token_twitter", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2),
+        secure: true,
+        sameSite: 'None'
       })
       .json({
         msg: "Login successfull",
