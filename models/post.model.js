@@ -70,3 +70,5 @@ const postSchema = new Schema({
 
 
 export default model('post', postSchema)
+
+

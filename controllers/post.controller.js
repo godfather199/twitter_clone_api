@@ -209,6 +209,8 @@ export const timeline_Post = async (req, res, next) => {
 export const fetch_Users_Post = async (req, res, next) => {
   try {
     const {userId} = req.params
+    const {id: logged_In_User_Id} = req.user
+    const is_Logged_In_User = userId === logged_In_User_Id
 
     const user_posts = await User.findById(userId).populate({
       path: "posts",
@@ -228,19 +230,27 @@ export const fetch_Users_Post = async (req, res, next) => {
       },
     });
 
-    const user_Reposted_Posts = await Post.find({
-      repost: {
-        $in: userId
-      }
-    }).populate('postedBy')
+    let user_Reposted_Posts
+
+    if (is_Logged_In_User) {
+      user_Reposted_Posts = await Post.find({
+        repost: {
+          $in: userId,
+        },
+      }).populate("postedBy");
+    }
 
     
     let {posts, ...details} = user_posts
-    posts = [...user_Reposted_Posts, ...posts ]
+
+    if(is_Logged_In_User) {
+      posts = [...user_Reposted_Posts, ...posts ]
+    }
 
     res.status(201).json({
       msg: "User Post's fetched",
-      posts,
+      posts
+      // posts,
     })
   } catch (error) {
     next(error)
